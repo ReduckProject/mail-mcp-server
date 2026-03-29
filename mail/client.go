@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/smtp"
 
-	"github.com/emersion/go-imap"
 	imapClient "github.com/emersion/go-imap/client"
 	"mail-mcp/config"
 )
@@ -18,7 +17,11 @@ func ConnectIMAP(cfg *config.Config) (*imapClient.Client, error) {
 	var err error
 
 	if cfg.IMAPSSL {
-		c, err = imapClient.DialTLS(addr, nil)
+		tlsConfig := &tls.Config{
+			ServerName:         cfg.IMAPHost,
+			InsecureSkipVerify: cfg.IMAPSkipTLS,
+		}
+		c, err = imapClient.DialTLS(addr, tlsConfig)
 	} else {
 		c, err = imapClient.Dial(addr)
 	}
@@ -42,7 +45,10 @@ func ConnectSMTP(cfg *config.Config) (*smtp.Client, error) {
 	var err error
 
 	if cfg.SMTPSSL {
-		tlsConfig := &tls.Config{ServerName: cfg.SMTPHost}
+		tlsConfig := &tls.Config{
+			ServerName:         cfg.SMTPHost,
+			InsecureSkipVerify: cfg.SMTPSkipTLS,
+		}
 		conn, err := tls.Dial("tcp", addr, tlsConfig)
 		if err != nil {
 			return nil, fmt.Errorf("SMTP TLS dial %s: %w", addr, err)
@@ -61,7 +67,11 @@ func ConnectSMTP(cfg *config.Config) (*smtp.Client, error) {
 	// Try STARTTLS if not already on TLS
 	if !cfg.SMTPSSL {
 		if ok, _ := c.Extension("STARTTLS"); ok {
-			if err := c.StartTLS(&tls.Config{ServerName: cfg.SMTPHost}); err != nil {
+			tlsConfig := &tls.Config{
+				ServerName:         cfg.SMTPHost,
+				InsecureSkipVerify: cfg.SMTPSkipTLS,
+			}
+			if err := c.StartTLS(tlsConfig); err != nil {
 				return nil, fmt.Errorf("SMTP STARTTLS: %w", err)
 			}
 		}
@@ -73,13 +83,4 @@ func ConnectSMTP(cfg *config.Config) (*smtp.Client, error) {
 	}
 
 	return c, nil
-}
-
-// hasAttachment checks if a message section contains attachments.
-func hasAttachment(msg *imap.Message) bool {
-	if msg == nil || msg.Envelope == nil {
-		return false
-	}
-	// Check if the message structure has parts (multipart = possible attachments)
-	return msg.BodyStructure != nil
 }

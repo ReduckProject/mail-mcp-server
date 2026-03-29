@@ -9,17 +9,19 @@ import (
 )
 
 type Config struct {
-	SMTPHost string `json:"smtp_host"`
-	SMTPPort int    `json:"smtp_port"`
-	SMTPUser string `json:"smtp_user"`
-	SMTPPass string `json:"smtp_pass"`
-	SMTPSSL  bool   `json:"smtp_ssl"`
+	SMTPHost        string `json:"smtp_host"`
+	SMTPPort        int    `json:"smtp_port"`
+	SMTPUser        string `json:"smtp_user"`
+	SMTPPass        string `json:"smtp_pass"`
+	SMTPSSL         bool   `json:"smtp_ssl"`
+	SMTPSkipTLS     bool   `json:"smtp_skip_tls_verify"`
 
-	IMAPHost string `json:"imap_host"`
-	IMAPPort int    `json:"imap_port"`
-	IMAPUser string `json:"imap_user"`
-	IMAPPass string `json:"imap_pass"`
-	IMAPSSL  bool   `json:"imap_ssl"`
+	IMAPHost        string `json:"imap_host"`
+	IMAPPort        int    `json:"imap_port"`
+	IMAPUser        string `json:"imap_user"`
+	IMAPPass        string `json:"imap_pass"`
+	IMAPSSL         bool   `json:"imap_ssl"`
+	IMAPSkipTLS     bool   `json:"imap_skip_tls_verify"`
 
 	EmailFrom string `json:"email_from"`
 }
@@ -75,12 +77,14 @@ func Load() (*Config, error) {
 	envStr("SMTP_USER", &cfg.SMTPUser)
 	envStr("SMTP_PASS", &cfg.SMTPPass)
 	envBool("SMTP_SSL", &cfg.SMTPSSL)
+	envBool("SMTP_SKIP_TLS_VERIFY", &cfg.SMTPSkipTLS)
 
 	envStr("IMAP_HOST", &cfg.IMAPHost)
 	envInt("IMAP_PORT", &cfg.IMAPPort)
 	envStr("IMAP_USER", &cfg.IMAPUser)
 	envStr("IMAP_PASS", &cfg.IMAPPass)
 	envBool("IMAP_SSL", &cfg.IMAPSSL)
+	envBool("IMAP_SKIP_TLS_VERIFY", &cfg.IMAPSkipTLS)
 
 	envStr("EMAIL_FROM", &cfg.EmailFrom)
 
