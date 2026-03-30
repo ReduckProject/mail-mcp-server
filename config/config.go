@@ -24,6 +24,9 @@ type Config struct {
 	IMAPSkipTLS     bool   `json:"imap_skip_tls_verify"`
 
 	EmailFrom string `json:"email_from"`
+
+	// Proxy settings
+	ProxyURL string `json:"proxy_url"`
 }
 
 func defaults() *Config {
@@ -87,6 +90,7 @@ func Load() (*Config, error) {
 	envBool("IMAP_SKIP_TLS_VERIFY", &cfg.IMAPSkipTLS)
 
 	envStr("EMAIL_FROM", &cfg.EmailFrom)
+	envStr("PROXY_URL", &cfg.ProxyURL)
 
 	// If IMAP credentials not set separately, use SMTP credentials
 	if cfg.IMAPUser == "" {

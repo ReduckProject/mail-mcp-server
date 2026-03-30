@@ -16,6 +16,7 @@ A Go-based [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) serv
 - **Delete Email** - Permanently delete emails
 - **GBK/GB2312 Decoding** - Properly decodes Chinese encoded email headers
 - **TLS Skip Verify** - Supports skipping TLS certificate verification for corporate networks
+- **Proxy Support** - SOCKS5 and HTTP/HTTPS proxy support for both SMTP and IMAP
 
 ## Installation
 
@@ -43,6 +44,9 @@ export IMAP_SSL=true
 export IMAP_SKIP_TLS_VERIFY=false
 
 export EMAIL_FROM=you@example.com   # default sender address
+
+# Optional: proxy support
+export PROXY_URL=socks5://127.0.0.1:1080
 ```
 
 ### Option 2: Config File
@@ -60,11 +64,25 @@ Create `mail-mcp.json` in the project directory or `~/.mail-mcp.json`:
   "imap_host": "imap.exmail.qq.com",
   "imap_port": 993,
   "imap_ssl": true,
-  "imap_skip_tls_verify": false
+  "imap_skip_tls_verify": false,
+  "proxy_url": ""
 }
 ```
 
 Environment variables take priority over the config file. If `IMAP_USER` / `IMAP_PASS` are not set, `SMTP_USER` / `SMTP_PASS` will be used as fallback.
+
+### Proxy Configuration
+
+Supports connecting to SMTP/IMAP through a proxy. Set `PROXY_URL` (env) or `proxy_url` (config):
+
+| Format | Example |
+|--------|---------|
+| SOCKS5 (no auth) | `socks5://127.0.0.1:1080` |
+| SOCKS5 (with auth) | `socks5://user:pass@127.0.0.1:1080` |
+| HTTP proxy | `http://127.0.0.1:8080` |
+| HTTPS proxy (with auth) | `https://user:pass@proxy.example.com:443` |
+
+When `PROXY_URL` is empty or not set, connections are made directly.
 
 ### Config Reference
 
@@ -81,6 +99,7 @@ Environment variables take priority over the config file. If `IMAP_USER` / `IMAP
 | `imap_ssl` | `IMAP_SSL` | `true` | Use SSL/TLS for IMAP |
 | `imap_skip_tls_verify` | `IMAP_SKIP_TLS_VERIFY` | `false` | Skip TLS certificate verification |
 | `email_from` | `EMAIL_FROM` | `smtp_user` | Default sender address |
+| `proxy_url` | `PROXY_URL` | - | Proxy URL (socks5/http/https) |
 
 ## MCP Tools
 
@@ -157,7 +176,8 @@ Add to your Claude Code MCP configuration:
         "IMAP_HOST": "imap.exmail.qq.com",
         "IMAP_PORT": "993",
         "IMAP_SSL": "true",
-        "IMAP_SKIP_TLS_VERIFY": "true"
+        "IMAP_SKIP_TLS_VERIFY": "true",
+        "PROXY_URL": ""
       }
     }
   }
@@ -175,7 +195,7 @@ mail-mcp/
     config.go          # Config loading (env > config file)
   mail/
     models.go          # Data structures
-    client.go          # SMTP/IMAP connection management
+    client.go          # SMTP/IMAP connection + proxy support
     send.go            # Send email with attachments
     fetch.go           # List, read, delete emails
     search.go          # Search with full criteria
@@ -187,6 +207,7 @@ mail-mcp/
 - **MCP SDK**: [mark3labs/mcp-go](https://github.com/mark3labs/mcp-go)
 - **IMAP**: [emersion/go-imap](https://github.com/emersion/go-imap)
 - **SMTP**: Go standard library (`net/smtp` + `mime`)
+- **Proxy**: [golang.org/x/net/proxy](https://pkg.go.dev/golang.org/x/net/proxy) for SOCKS5
 - **Charset**: [golang.org/x/text](https://pkg.go.dev/golang.org/x/text) for GBK/GB2312 decoding
 
 ## License
@@ -211,6 +232,7 @@ MIT
 - **删除邮件** - 永久删除邮件
 - **GBK/GB2312 解码** - 正确解码中文编码的邮件头
 - **跳过 TLS 验证** - 支持企业网络环境下跳过证书验证
+- **代理支持** - 支持 SOCKS5 和 HTTP/HTTPS 代理，适用于 SMTP 和 IMAP
 
 ## 安装
 
@@ -238,6 +260,9 @@ export IMAP_SSL=true
 export IMAP_SKIP_TLS_VERIFY=false
 
 export EMAIL_FROM=you@example.com   # 默认发件人地址
+
+# 可选：代理设置
+export PROXY_URL=socks5://127.0.0.1:1080
 ```
 
 ### 方式二：配置文件
@@ -255,11 +280,25 @@ export EMAIL_FROM=you@example.com   # 默认发件人地址
   "imap_host": "imap.exmail.qq.com",
   "imap_port": 993,
   "imap_ssl": true,
-  "imap_skip_tls_verify": false
+  "imap_skip_tls_verify": false,
+  "proxy_url": ""
 }
 ```
 
 环境变量优先级高于配置文件。若未设置 `IMAP_USER` / `IMAP_PASS`，将使用 `SMTP_USER` / `SMTP_PASS` 作为默认值。
+
+### 代理配置
+
+支持通过代理连接 SMTP/IMAP。设置 `PROXY_URL`（环境变量）或 `proxy_url`（配置文件）：
+
+| 格式 | 示例 |
+|------|------|
+| SOCKS5（无认证） | `socks5://127.0.0.1:1080` |
+| SOCKS5（有认证） | `socks5://user:pass@127.0.0.1:1080` |
+| HTTP 代理 | `http://127.0.0.1:8080` |
+| HTTPS 代理（有认证） | `https://user:pass@proxy.example.com:443` |
+
+`PROXY_URL` 为空或不设置时，使用直连。
 
 ### 配置项说明
 
@@ -276,6 +315,7 @@ export EMAIL_FROM=you@example.com   # 默认发件人地址
 | `imap_ssl` | `IMAP_SSL` | `true` | 使用 SSL/TLS |
 | `imap_skip_tls_verify` | `IMAP_SKIP_TLS_VERIFY` | `false` | 跳过 TLS 证书验证 |
 | `email_from` | `EMAIL_FROM` | `smtp_user` | 默认发件人地址 |
+| `proxy_url` | `PROXY_URL` | - | 代理地址（socks5/http/https） |
 
 ## MCP 工具列表
 
@@ -307,7 +347,8 @@ export EMAIL_FROM=you@example.com   # 默认发件人地址
         "IMAP_HOST": "imap.exmail.qq.com",
         "IMAP_PORT": "993",
         "IMAP_SSL": "true",
-        "IMAP_SKIP_TLS_VERIFY": "true"
+        "IMAP_SKIP_TLS_VERIFY": "true",
+        "PROXY_URL": ""
       }
     }
   }
@@ -325,7 +366,7 @@ mail-mcp/
     config.go          # 配置加载（环境变量 > 配置文件）
   mail/
     models.go          # 数据结构定义
-    client.go          # SMTP/IMAP 连接管理
+    client.go          # SMTP/IMAP 连接 + 代理支持
     send.go            # 发送邮件（含附件）
     fetch.go           # 列表、阅读、删除邮件
     search.go          # 全条件搜索
@@ -337,6 +378,7 @@ mail-mcp/
 - **MCP SDK**: [mark3labs/mcp-go](https://github.com/mark3labs/mcp-go)
 - **IMAP**: [emersion/go-imap](https://github.com/emersion/go-imap)
 - **SMTP**: Go 标准库 (`net/smtp` + `mime`)
+- **代理**: [golang.org/x/net/proxy](https://pkg.go.dev/golang.org/x/net/proxy) 用于 SOCKS5
 - **字符集**: [golang.org/x/text](https://pkg.go.dev/golang.org/x/text) 用于 GBK/GB2312 解码
 
 ## 许可证
