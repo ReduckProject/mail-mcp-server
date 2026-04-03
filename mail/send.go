@@ -54,18 +54,11 @@ func SendEmail(cfg *config.Config, to []string, cc []string, bcc []string, subje
 }
 
 func encodeRFC2047(s string) string {
-	// Use quoted-printable encoding for non-ASCII text
 	if isASCII(s) {
 		return s
 	}
-	var buf bytes.Buffer
-	qe := quotedprintable.NewWriter(&buf)
-	qe.Write([]byte(s))
-	qe.Close()
-	encoded := strings.ReplaceAll(buf.String(), " ", "_")
-	encoded = strings.ReplaceAll(encoded, "\n", "") // remove trailing newline
-	encoded = strings.ReplaceAll(encoded, "\r", "")
-	return fmt.Sprintf("=?utf-8?Q?%s?=", encoded)
+	encoded := base64.StdEncoding.EncodeToString([]byte(s))
+	return fmt.Sprintf("=?utf-8?B?%s?=", encoded)
 }
 
 func isASCII(s string) bool {
